@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Veriq — личный дашборд</title>
+  <style>
+    :root{
+      color-scheme: light;
+      --p:#6750A4; --pc:#EADDFF; --onpc:#21005D;
+      --s:#FEF7FF; --sc:#F3EDF7; --sch:#ECE6F0; --hi:#E6E0E9;
+      --on:#1D1B20; --onv:#49454F; --ol:#CAC4D0;
+      --err:#B3261E; --errc:#F9DEDC; --ok:#146C2E; --okc:#C4EED0;
+      --shadow: 0 1px 2px rgba(0,0,0,.25), 0 8px 24px rgba(29,27,32,.08);
+      --r-xl:28px; --r-lg:20px; --r-md:14px; --r-pill:999px;
+      --ease:cubic-bezier(.2,.8,.2,1);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        color-scheme: dark;
+        --p:#D0BCFF; --pc:#4F378B; --onpc:#EADDFF;
+        --s:#141218; --sc:#211F26; --sch:#2B2930; --hi:#36343B;
+        --on:#E6E0E9; --onv:#CAC4D0; --ol:#49454F;
+        --err:#F2B8B5; --errc:#601410; --ok:#7DDA98; --okc:#0F5223;
+        --shadow: 0 1px 2px rgba(0,0,0,.5), 0 12px 28px rgba(0,0,0,.35);
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Roboto,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--s);color:var(--on);line-height:1.45;-webkit-font-smoothing:antialiased}
+    a{color:var(--p)}
+    .bg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;background:radial-gradient(900px 420px at -10% -10%, color-mix(in srgb,var(--pc) 55%, transparent), transparent 60%),radial-gradient(700px 380px at 110% 0%, color-mix(in srgb,var(--sch) 70%, transparent), transparent 55%),var(--s)}
+    .shape{position:absolute;border-radius:40% 60% 55% 45%/45% 40% 60% 55%;opacity:.45;animation:float 14s var(--ease) infinite}
+    .s1{width:260px;height:260px;left:-60px;top:8%;background:color-mix(in srgb,var(--pc) 70%, transparent);animation-duration:18s}
+    .s2{width:180px;height:180px;right:-30px;top:18%;background:color-mix(in srgb,var(--sch) 80%, transparent);animation-duration:15s;animation-delay:-4s}
+    .s3{width:220px;height:220px;right:10%;bottom:-60px;background:color-mix(in srgb,var(--pc) 45%, transparent);animation-duration:20s;animation-delay:-8s}
+    @keyframes float{0%,100%{transform:translateY(0) rotate(0deg) scale(1)}50%{transform:translateY(-18px) rotate(6deg) scale(1.03)}}
+    .app{position:relative;z-index:1;min-height:100%}
+    .center{min-height:100vh;display:grid;place-items:center;padding:20px}
+    .wrap{max-width:1040px;margin:0 auto;padding:20px}
+    .card,.panel{background:color-mix(in srgb,var(--sc) 92%, transparent);border:1px solid var(--ol);border-radius:var(--r-xl);box-shadow:var(--shadow);backdrop-filter:saturate(1.2) blur(6px)}
+    .card{width:min(460px,100%);padding:26px}
+    .panel{padding:18px;margin:14px 0;border-radius:var(--r-lg)}
+    .appear{animation:rise .45s var(--ease) both}
+    .stagger>*{animation:rise .45s var(--ease) both}
+    .stagger>*:nth-child(2){animation-delay:.05s}.stagger>*:nth-child(3){animation-delay:.1s}.stagger>*:nth-child(4){animation-delay:.15s}
+    @keyframes rise{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    h1{margin:0 0 6px;font-weight:500;font-size:28px;letter-spacing:-.2px}
+    h2{margin:0 0 10px;font-weight:500;font-size:20px}
+    p{margin:0 0 14px;color:var(--onv)}
+    .muted{color:var(--onv)} .tiny{font-size:12px;color:var(--onv)}
+    label{display:block;font-size:14px;margin:0 0 6px;color:var(--onv)}
+    input,textarea{width:100%;border-radius:var(--r-md);border:1px solid var(--ol);background:color-mix(in srgb,var(--s) 70%, #fff 30%);color:var(--on);font:15px Roboto,system-ui,sans-serif;transition:border-color .18s var(--ease),box-shadow .18s var(--ease)}
+    input{height:46px;padding:0 14px}
+    textarea{min-height:150px;padding:10px 14px;resize:vertical;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace}
+    input:focus,textarea:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 3px color-mix(in srgb,var(--p) 20%, transparent)}
+    .row{display:grid;gap:12px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    button,.btn{appearance:none;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:var(--r-pill);background:var(--p);color:color-mix(in srgb,var(--s) 98%, #fff 2%);font:500 14px Roboto,system-ui,sans-serif;transition:transform .12s var(--ease),filter .18s var(--ease),box-shadow .18s var(--ease);box-shadow:0 1px 2px rgba(0,0,0,.18)}
+    button:hover{filter:brightness(1.03)} button:active{transform:scale(.98)}
+    button:disabled{opacity:.55;cursor:default;transform:none}
+    button.tonal{background:var(--sch);color:var(--on);box-shadow:none}
+    button.ghost{background:transparent;color:var(--p);box-shadow:none}
+    button.danger{background:var(--errc);color:var(--err);box-shadow:none}
+    .msg{font-size:14px;margin-top:10px;min-height:20px}
+    .msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
+    .notice{font-size:13px;color:var(--onv);background:color-mix(in srgb,var(--s) 65%, #fff 35%);border:1px dashed var(--ol);border-radius:16px;padding:10px 12px;margin-top:12px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:36px;height:36px;border-radius:12px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;font-weight:700}
+    .sub{margin:4px 0 0}
+    .pill{display:inline-flex;align-items:center;font-size:12px;padding:4px 10px;border-radius:var(--r-pill);background:var(--pc);color:var(--onpc)}
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:separate;border-spacing:0;font-size:14px}
+    th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--ol);vertical-align:top}
+    th{color:var(--onv);font-weight:500;font-size:13px}
+    tbody tr{transition:background .18s var(--ease)} tbody tr:hover{background:color-mix(in srgb,var(--sch) 35%, transparent)}
+    code{background:var(--sch);padding:2px 7px;border-radius:8px;font:12px ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all}
+    .meta{font-size:12px;color:var(--onv);margin-top:4px}
+    .empty{color:var(--onv);padding:8px 0}
+    .key-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .key-actions button{height:34px;padding:0 12px;font-size:13px}
+    .reveal{overflow:hidden;max-height:0;opacity:0;transform:translateY(-4px);transition:max-height .35s var(--ease),opacity .25s var(--ease),transform .25s var(--ease),margin-top .25s var(--ease)}
+    .reveal.open{max-height:900px;opacity:1;transform:translateY(0);margin-top:10px}
+    details{border:1px solid var(--ol);border-radius:16px;padding:10px 12px;background:color-mix(in srgb,var(--s) 70%, #fff 30%);margin-top:8px}
+    summary{cursor:pointer;font-weight:500;list-style:none} summary::-webkit-details-marker{display:none}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);background:var(--on);color:var(--s);padding:10px 14px;border-radius:14px;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .22s var(--ease),transform .22s var(--ease);z-index:10;max-width:min(92vw,520px)}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .tabs{display:flex;gap:6px;margin:6px 0 10px}
+    .tab{flex:1;height:38px;border-radius:12px;background:transparent;color:var(--onv);box-shadow:none;border:1px solid var(--ol)}
+    .tab.active{background:var(--pc);color:var(--onpc);border-color:transparent}
+    pre.cfg{white-space:pre-wrap;background:color-mix(in srgb,var(--s) 70%, #fff 30%);border:1px solid var(--ol);border-radius:14px;padding:12px;font:12px/1.45 ui-monospace,Consolas,monospace;color:var(--on);margin:8px 0 0}
+    @media (max-width:700px){.grid2{grid-template-columns:1fr}.wrap{padding:14px}.card{padding:20px}}
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"><div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div></div>
+  <div class="app" id="app"></div>
+  <div class="toast" id="toast"></div>
+
+<script type="module">
+  // ===== Firebase config =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyDwNw2MH9FAdYBAHjXJ-bw9K7JXoRiTWz4",
+    authDomain: "veriq-980c5.firebaseapp.com",
+    projectId: "veriq-980c5",
+    storageBucket: "veriq-980c5.firebasestorage.app",
+    messagingSenderId: "214847829462",
+    appId: "1:214847829462:web:64c16c08b6964109bc2077"
+  };
+  // =====================================================
+
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  const appEl = document.getElementById('app');
+  const toastEl = document.getElementById('toast');
+
+  function toast(msg, ms=2200){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>toastEl.classList.remove('show'), ms); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+  function fmtTs(ts){ try{ return new Date(ts).toLocaleString('ru-RU',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return String(ts||''); } }
+  function b64url(bytes){ let bin=''; for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/g,''); }
+  function randBytes(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return a; }
+  function randToken(n){ return b64url(randBytes(n)); }
+  function genSiteKey(){ return 'pk_' + randToken(16).replace(/-/g,'_').slice(0,22); }
+  function genSecretKey(){ return 'sk_' + randToken(24).replace(/-/g,'_').slice(0,32); }
+
+  function isConfigured(){
+    return firebaseConfig.apiKey && !String(firebaseConfig.apiKey).startsWith('PASTE_') && firebaseConfig.projectId && !String(firebaseConfig.projectId).startsWith('PASTE_');
+  }
+
+  let fb = {app:null, auth:null, db:null};
+  let state = {user:null, data:{keys:[], baseUrl:''}, loading:true, authMode:'login'};
+
+  function initFirebase(){
+    if(!isConfigured()) return false;
+    try{
+      fb.app = initializeApp(firebaseConfig);
+      fb.auth = getAuth(fb.app);
+      fb.db = getFirestore(fb.app);
+      return true;
+    }catch(e){
+      console.error(e);
+      return false;
+    }
+  }
+
+  async function loadUserData(uid){
+    const ref = doc(fb.db, 'users', uid);
+    const snap = await getDoc(ref);
+    if(!snap.exists()){
+      const init = {keys:[], baseUrl:'', createdAt: serverTimestamp()};
+      await setDoc(ref, init, {merge:true});
+      return {keys:[], baseUrl:''};
+    }
+    const d = snap.data() || {};
+    return {keys: Array.isArray(d.keys)? d.keys : [], baseUrl: d.baseUrl || ''};
+  }
+  async function saveUserData(uid, data){
+    const ref = doc(fb.db, 'users', uid);
+    await setDoc(ref, {keys: data.keys||[], baseUrl: data.baseUrl||'', updatedAt: serverTimestamp()}, {merge:true});
+  }
+
+  function pageConfigHelp(){
+    appEl.innerHTML = `
+    <div class="center"><div class="card appear" style="width:min(760px,100%)">
+      <div class="brand" style="margin-bottom:10px"><div class="logo">V</div><div><div style="font-weight:500">Veriq</div><div class="tiny">личный дашборд · Firebase</div></div></div>
+      <h1>Нужно подключить Firebase</h1>
+      <p>Чтобы дашборд работал онлайн для всех (без бота), вставьте конфиг вашего проекта Firebase в этот файл.</p>
+      <div class="panel">
+        <h2>Как создать проект и получить конфиг</h2>
+        <ol class="muted" style="margin:0 0 0 18px;padding:0;display:grid;gap:6px">
+          <li>Откройте <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a> → <b>Add project</b> / «Создать проект» (план Spark — бесплатный).</li>
+          <li>В проекте: <b>Build → Authentication → Get started</b> → вкладка <b>Sign-in method</b> → включите <b>Email/Password</b>.</li>
+          <li><b>Build → Firestore Database → Create database</b> (можно в production mode).</li>
+          <li>Правила Firestore (вкладка Rules), чтобы каждый видел только свои данные:
+            <pre class="cfg">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}</pre>
+            Нажмите <b>Publish</b>.</li>
+          <li><b>Project settings (⚙) → Your apps → Web (&lt;/&gt;)</b> → зарегистрируйте приложение → скопируйте <code>firebaseConfig</code>.</li>
+          <li>Откройте этот файл <code>личный дашборд.html</code> и замените значения <code>PASTE_...</code> в блоке <code>firebaseConfig</code> вверху скрипта. Сохраните и выложите файл (например, на GitHub Pages).</li>
+        </ol>
+      </div>
+      <div class="notice">После вставки конфига страница автоматически покажет вход/регистрацию (email и пароль придумывает сам пользователь).</div>
+    </div></div>`;
+  }
+
+  function pageAuth(errorMsg=''){
+    const isLogin = state.authMode === 'login';
+    appEl.innerHTML = `
+    <div class="center"><div class="card appear">
+      <div class="brand" style="margin-bottom:10px"><div class="logo">V</div><div><div style="font-weight:500">Veriq</div><div class="tiny">личный дашборд</div></div></div>
+      <h1>${isLogin ? 'Вход' : 'Регистрация'}</h1>
+      <p>${isLogin ? 'Войдите в свой дашборд.' : 'Создайте аккаунт: email и пароль придумываете вы сами.'}</p>
+      <div class="tabs">
+        <button type="button" class="tab ${isLogin?'active':''}" id="tabLogin">Вход</button>
+        <button type="button" class="tab ${!isLogin?'active':''}" id="tabReg">Регистрация</button>
+      </div>
+      <form id="authForm" class="row stagger">
+        <div><label for="email">Email</label><input id="email" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+        <div><label for="pw">Пароль</label><input id="pw" type="password" autocomplete="${isLogin?'current-password':'new-password'}" required minlength="6" placeholder="Минимум 6 символов"></div>
+        <button type="submit" id="authBtn">${isLogin ? 'Войти' : 'Создать аккаунт'}</button>
+      </form>
+      <div id="msg" class="msg err">${esc(errorMsg)}</div>
+      <div class="notice">Данные (ключи) хранятся в Firebase и привязаны к вашему аккаунту — можно войти с другого устройства.</div>
+    </div></div>`;
+    document.getElementById('tabLogin').onclick = ()=>{ state.authMode='login'; render(); };
+    document.getElementById('tabReg').onclick = ()=>{ state.authMode='register'; render(); };
+    document.getElementById('authForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const msg = document.getElementById('msg'); msg.textContent='';
+      const btn = document.getElementById('authBtn'); btn.disabled=true;
+      const email = document.getElementById('email').value.trim();
+      const pw = document.getElementById('pw').value;
+      try{
+        if(state.authMode==='register'){
+          await createUserWithEmailAndPassword(fb.auth, email, pw);
+          toast('Аккаунт создан');
+        } else {
+          await signInWithEmailAndPassword(fb.auth, email, pw);
+          toast('Вход выполнен');
+        }
+      }catch(err){
+        msg.textContent = friendlyAuthError(err);
+      }finally{ btn.disabled=false; }
+    });
+  }
+
+  function friendlyAuthError(err){
+    const code = err && err.code || '';
+    const map = {
+      'auth/email-already-in-use':'Этот email уже зарегистрирован. Перейдите на вкладку «Вход».',
+      'auth/invalid-email':'Некорректный email.',
+      'auth/weak-password':'Пароль слишком простой (минимум 6 символов).',
+      'auth/user-not-found':'Аккаунт не найден. Зарегистрируйтесь.',
+      'auth/wrong-password':'Неверный пароль.',
+      'auth/invalid-credential':'Неверный email или пароль.',
+      'auth/too-many-requests':'Слишком много попыток. Попробуйте позже.',
+      'auth/network-request-failed':'Ошибка сети. Проверьте подключение.',
+      'auth/operation-not-allowed':'В Firebase не включён вход по Email/Password.'
+    };
+    return map[code] || ('Ошибка: ' + (err && err.message ? err.message : code || 'неизвестно'));
+  }
+
+  function snippetHtml(k, base){
+    return ['<!-- Veriq -->',
+      '<link rel="stylesheet" href="' + base + '/static/widget.css">',
+      '<div class="mycaptcha-widget" data-sitekey="' + k.site_key + '" data-base="' + base + '"></div>',
+      '<script src="' + base + '/widget.js"><\/script>',
+      '<!-- В форме будет поле name="mycaptcha_token" -->'].join('\n');
+  }
+  function snippetPy(k, base){
+    return "import requests\n\nSECRET_KEY = '" + k.secret_key + "'\nSITE_KEY = '" + k.site_key + "'\nVERIFY_URL = '" + base + "/api/siteverify'\n\n"+
+      "def verify_captcha(token: str) -> bool:\n    r = requests.post(VERIFY_URL, json={\n        'secret_key': SECRET_KEY,\n        'site_key': SITE_KEY,\n        'token': token,\n    }, timeout=10)\n    data = r.json()\n    return bool(data.get('success'))\n\n# Пример (Flask):\n# token = request.form.get('mycaptcha_token')\n# if not verify_captcha(token): abort(400, 'captcha failed')\n";
+  }
+  async function copyText(text){
+    try{ await navigator.clipboard.writeText(text); toast('Скопировано'); }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy'); toast('Скопировано');}catch(_){toast('Не удалось скопировать');} document.body.removeChild(ta); }
+  }
+
+  function pageDash(){
+    const data = state.data || {keys:[], baseUrl:''};
+    const keys = Array.isArray(data.keys)? data.keys : [];
+    const base = (data.baseUrl||'').replace(/\/$/,'');
+    const email = state.user && state.user.email ? state.user.email : '';
+    const rows = keys.length ? keys.map((k,i)=>`
+      <tr style="animation:rise .35s var(--ease) ${Math.min(i*0.03,0.25)}s both">
+        <td>
+          <b>${i+1}. ${esc(k.label||'default')}</b>
+          <div class="meta">создан: ${esc(fmtTs(k.created_at))}</div>
+          <div class="key-actions">
+            <button type="button" class="tonal" data-act="code" data-i="${i}">Код</button>
+            <button type="button" class="tonal" data-act="copy-pair" data-i="${i}">Копировать ключи</button>
+            <button type="button" class="danger" data-act="del" data-i="${i}">Удалить</button>
+          </div>
+          <div id="code-${i}" class="reveal"></div>
+        </td>
+        <td><code>${esc(k.site_key)}</code></td>
+        <td><code>${esc(k.secret_key)}</code></td>
+      </tr>`).join('') : '<tr><td colspan="3" class="empty">Ключей пока нет. Создайте первый ниже.</td></tr>';
+
+    appEl.innerHTML = `
+    <div class="wrap appear">
+      <div class="top">
+        <div class="brand"><div class="logo">V</div><div><h1 style="font-size:24px;margin:0">Личный дашборд</h1><p class="sub muted">${esc(email)} · <span class="pill">Firebase</span></p></div></div>
+        <div class="actions" style="margin:0"><button type="button" class="tonal" id="logoutBtn">Выйти</button></div>
+      </div>
+      <div class="panel stagger">
+        <h2>Настройки</h2>
+        <div class="row">
+          <div><label for="baseUrl">BASE_URL сервиса Veriq (для генерации кода)</label>
+          <input id="baseUrl" type="text" placeholder="https://ваш-сервис.example.com" value="${esc(base)}"></div>
+          <div class="actions" style="margin:0"><button type="button" class="tonal" id="saveBase">Сохранить BASE_URL</button></div>
+        </div>
+      </div>
+      <div class="panel stagger">
+        <h2>Создать ключ</h2>
+        <div class="grid2">
+          <div><label for="label">Название (метка)</label><input id="label" type="text" placeholder="например, мой-сайт"></div>
+          <div style="display:flex;align-items:end"><button type="button" id="createBtn" style="width:100%">Создать site_key / secret_key</button></div>
+        </div>
+        <div id="createMsg" class="msg ok"></div>
+      </div>
+      <div class="panel">
+        <h2>Мои ключи (${keys.length})</h2>
+        <div class="table-wrap"><table><thead><tr><th>Метка</th><th>site_key</th><th>secret_key</th></tr></thead><tbody>${rows}</tbody></table></div>
+        <div class="notice">Ключи сохраняются в Firebase (Firestore) в вашем аккаунте. Чтобы ключи реально проходили серверную проверку капчи Veriq (<code>/api/siteverify</code>), они также должны существовать в базе работающего бэкенда Veriq.</div>
+      </div>
+    </div>`;
+
+    document.getElementById('logoutBtn').onclick = async ()=>{ await signOut(fb.auth); toast('Вы вышли'); };
+    document.getElementById('saveBase').onclick = async ()=>{
+      try{ state.data.baseUrl = (document.getElementById('baseUrl').value||'').trim().replace(/\/$/,''); await saveUserData(state.user.uid, state.data); toast('BASE_URL сохранён'); }
+      catch(e){ toast('Не удалось сохранить (проверьте правила Firebase)'); }
+    };
+    document.getElementById('createBtn').onclick = async ()=>{
+      const btn = document.getElementById('createBtn'); btn.disabled=true;
+      try{
+        const label = (document.getElementById('label').value||'').trim() || 'default';
+        const k = {site_key: genSiteKey(), secret_key: genSecretKey(), label, created_at: Date.now()};
+        state.data.keys.unshift(k);
+        await saveUserData(state.user.uid, state.data);
+        document.getElementById('label').value='';
+        toast('Ключ создан'); render();
+      }catch(e){ toast('Не удалось создать ключ'); }
+      finally{ btn.disabled=false; }
+    };
+
+    appEl.querySelectorAll('button[data-act]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const i = parseInt(btn.getAttribute('data-i'),10);
+        const act = btn.getAttribute('data-act');
+        const k = state.data.keys[i]; if(!k) return;
+        if(act==='del'){
+          if(!confirm('Удалить этот ключ?')) return;
+          try{ state.data.keys.splice(i,1); await saveUserData(state.user.uid, state.data); toast('Ключ удалён'); render(); }catch(e){ toast('Ошибка удаления'); }
+          return;
+        }
+        if(act==='copy-pair'){ copyText('site_key: ' + k.site_key + '\nsecret_key: ' + k.secret_key); return; }
+        if(act==='code'){
+          const box = document.getElementById('code-'+i);
+          if(box.classList.contains('open')){ box.classList.remove('open'); box.innerHTML=''; return; }
+          const bu = (state.data.baseUrl||'').replace(/\/$/,'') || 'https://BASE_URL';
+          box.innerHTML = `
+            <details open><summary>HTML-код для вставки</summary><textarea readonly>${esc(snippetHtml(k, bu))}</textarea>
+              <div class="actions" style="margin-top:8px"><button type="button" class="tonal" data-copy="html" data-i="${i}">Копировать HTML</button></div></details>
+            <details style="margin-top:8px"><summary>Python-код для проверки на сервере</summary><textarea readonly>${esc(snippetPy(k, bu))}</textarea>
+              <div class="actions" style="margin-top:8px"><button type="button" class="tonal" data-copy="py" data-i="${i}">Копировать Python</button></div></details>
+            <div class="tiny" style="margin-top:8px">Если BASE_URL не задан, замените <code>https://BASE_URL</code> на адрес вашего сервиса Veriq.</div>`;
+          box.classList.add('open');
+          box.querySelectorAll('button[data-copy]').forEach(b=>{
+            b.addEventListener('click', ()=>{ const idx=parseInt(b.getAttribute('data-i'),10); const kk=state.data.keys[idx]; if(!kk) return; const bu2=(state.data.baseUrl||'').replace(/\/$/,'')||'https://BASE_URL'; copyText(b.getAttribute('data-copy')==='html'?snippetHtml(kk,bu2):snippetPy(kk,bu2)); });
+          });
+        }
+      });
+    });
+  }
+
+  function pageLoading(){
+    appEl.innerHTML = `<div class="center"><div class="card appear" style="text-align:center"><h1>Загрузка…</h1><p class="muted">Подключение к дашборду</p></div></div>`;
+  }
+
+  function render(){
+    if(!isConfigured() || !fb.auth){ pageConfigHelp(); return; }
+    if(state.loading){ pageLoading(); return; }
+    if(!state.user){ pageAuth(); return; }
+    pageDash();
+  }
+
+  (function start(){
+    if(!initFirebase()){ render(); return; }
+    onAuthStateChanged(fb.auth, async (user)=>{
+      state.user = user;
+      state.loading = true; render();
+      try{
+        if(user){ state.data = await loadUserData(user.uid); }
+        else { state.data = {keys:[], baseUrl:''}; }
+      }catch(e){ console.error(e); toast('Ошибка загрузки данных'); state.data = {keys:[], baseUrl:''}; }
+      state.loading = false; render();
+    });
+  })();
+</script>
+</body>
+</html>
